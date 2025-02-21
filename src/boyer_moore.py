@@ -19,6 +19,7 @@ def get_shift_match_table(P):
     shift_match_table[m] = 0
     return shift_match_table
 
+
 def get_good_suffix_table(P):
     m = len(P)
 
@@ -36,20 +37,54 @@ def get_good_suffix_table(P):
 
     for i in range(m, 0, -1):
         if shift_match_table[i] + i == m:
-            for j in range(shift_match_table[i] + 1, m+1):
+            for j in range(shift_match_table[i] + 1, m + 1):
                 good_suffix_table[j] = min(good_suffix_table[j], j + i)
     return good_suffix_table
 
+
 def get_bad_char_table(P):
     bad_char_table = {}
-    #####################################################################
-    ## ADD CODE HERE
-    #####################################################################
+
+    for i in range(len(P)):
+        bad_char_table[P[i]] = i
+
     return bad_char_table
+
 
 def boyer_moore_search(T, P):
     occurrences = []
-    #####################################################################
-    ## ADD CODE HERE
-    #####################################################################
+    n, m = len(T), len(P)
+
+    if m == 0 or n == 0 or m > n:
+        return occurrences
+
+    bad_char_table = get_bad_char_table(P)
+    good_suffix_table = get_good_suffix_table(P)
+
+    text_pointer = 0
+    while text_pointer <= n - m:
+        pattern_pointer = m - 1
+
+        while (
+            pattern_pointer >= 0
+            and P[pattern_pointer] == T[text_pointer + pattern_pointer]
+        ):
+            pattern_pointer -= 1
+
+        if pattern_pointer < 0:
+            occurrences.append(text_pointer)
+            bad_char_shift = pattern_pointer - bad_char_table.get(
+                T[text_pointer + pattern_pointer], -1
+            )
+            good_suffix_shift = good_suffix_table.get(pattern_pointer - 1, m)
+            text_pointer += (
+                max(bad_char_shift, good_suffix_shift) if text_pointer + m < n else 1
+            )
+        else:
+            bad_char_shift = pattern_pointer - bad_char_table.get(
+                T[text_pointer + pattern_pointer], -1
+            )
+            good_suffix_shift = good_suffix_table.get(pattern_pointer - 1, m)
+            text_pointer += max(bad_char_shift, good_suffix_shift)
+
     return occurrences
